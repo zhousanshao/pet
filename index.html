@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>洛克王国 - 宠物图鉴</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    
+    <!-- 配置Tailwind自定义颜色和字体 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#10B981',
+                        dark: '#1E293B',
+                        light: '#F8FAFC',
+                        fire: '#EF4444',
+                        water: '#3B82F6',
+                        grass: '#22C55E',
+                        electric: '#F59E0B',
+                        ice: '#06B6D4',
+                        fighting: '#BE185D',
+                        poison: '#8B5CF6',
+                        ground: '#D97706',
+                        flying: '#60A5FA',
+                        psychic: '#EC4899',
+                        bug: '#84CC16',
+                        rock: '#C2410C',
+                        ghost: '#7C3AED',
+                        dragon: '#0EA5E9',
+                        dark: '#1F2937',
+                        steel: '#6B7280',
+                        fairy: '#F472B6',
+                        normal: '#A8A77A',
+                        godgrass: '#047857'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['"Press Start 2P"', 'cursive']
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            }
+            .pet-card-hover {
+                @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+            }
+            .type-badge {
+                @apply px-2 py-1 rounded-full text-xs font-semibold text-white;
+            }
+            .btn-primary {
+                @apply bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg;
+            }
+            .btn-secondary {
+                @apply bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg;
+            }
+            .btn-disabled {
+                @apply bg-slate-300 text-slate-500 font-medium py-2 px-4 rounded-lg cursor-not-allowed;
+            }
+            .pet-image-container {
+                @apply relative h-48 overflow-hidden flex items-center justify-center;
+            }
+            .pet-image {
+                @apply w-full h-full object-contain p-4 transition-transform duration-500 hover:scale-125;
+                min-height: 160px;
+            }
+            .type-badges-container {
+                @apply absolute top-2 right-2 flex gap-1;
+            }
+            .stat-bar {
+                @apply h-2 rounded-full bg-slate-200 overflow-hidden;
+            }
+            .stat-progress {
+                @apply h-full rounded-full transition-all duration-500;
+            }
+            .pet-info-container {
+                @apply flex flex-col h-full;
+            }
+            .pet-description {
+                @apply flex-grow;
+            }
+            .section-hidden {
+                @apply hidden;
+            }
+            .news-card {
+                @apply bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl;
+            }
+            .rule-section {
+                @apply mb-8 pb-6 border-b border-slate-200 last:border-0 last:mb-0 last:pb-0;
+            }
+            .攻略-card {
+                @apply bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer;
+            }
+            .攻略-icon-container {
+                @apply w-16 h-16 rounded-full flex items-center justify-center mb-4;
+            }
+        }
+    </style>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen font-sans text-dark flex flex-col">
+    <!-- 导航栏 -->
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm transition-all duration-300">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <img src="https://ts1.tc.mm.bing.net/th/id/R-C.1868f23d6989d2270766006a04a4f21f?rik=ffdNXFlvBuejvg&riu=http%3a%2f%2fimg1.gtimg.com%2fkid%2fpics%2fhv1%2f94%2f148%2f1074%2f69874684.gif&ehk=tvNoHG3C4d8BBwHzyiByRqmGDdqraV0gl4hsqTgemjM%3d&risl=&pid=ImgRaw&r=0" alt="洛克王国标志" class="h-10 w-10 rounded-lg">
+                <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">洛克王国</h1>
+            </div>
+            
+            <nav class="hidden md:flex items-center space-x-6">
+                <a href="#" class="nav-link font-medium text-primary border-b-2 border-primary" data-target="pet-t图鉴">宠物图鉴</a>
+                <a href="#" class="nav-link font-medium text-slate-600 hover:text-primary transition-colors" data-target="宠物技能">宠物技能</a>
+                <a href="#" class="nav-link font-medium text-slate-600 hover:text-primary transition-colors" data-target="战斗攻略">战斗攻略</a>
+                <a href="#" class="nav-link font-medium text-slate-600 hover:text-primary transition-colors" data-target="游戏资讯">游戏资讯</a>
+            </nav>
+            
+            <button class="md:hidden text-slate-700 text-xl">
+                <i class="fa fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- 主横幅 -->
+    <section id="main-banner" class="relative overflow-hidden bg-gradient-to-r from-primary to-purple-700 text-white">
+        <div class="absolute inset-0 opacity-20">
+            <div class="absolute inset-0 bg-[url('https://ts1.tc.mm.bing.net/th/id/R-C.69e2eabe0a22e8dfd7fe125dd93786ee?rik=HoDPOwujqz0rtg&riu=http%3a%2f%2fossweb-img.qq.com%2fimages%2froco%2fact%2fa20110727lkwg%2fwallpaper%2f7_4_1440.jpg&ehk=I%2fYMYXtR1zTPQqj%2fEgE2pOkw%2f8FixfQpTfpK5jzjXfA%3d&risl=&pid=ImgRaw&r=0')] bg-cover bg-center"></div>
+        </div>
+        <div class="container mx-auto px-4 py-16 md:py-24 relative z-10">
+            <h2 class="text-[clamp(1.8rem,5vw,3rem)] font-bold text-shadow mb-4">洛克王国小吉-宠物图鉴</h2>
+            <p class="text-lg md:text-xl max-w-2xl text-white/90 mb-8">探索魔力值宠物，组建属于你的最强战队，前往201/233踏上冒险之旅！</p>
+            <div class="flex flex-wrap gap-4">
+                <button class="btn-primary flex items-center">
+                    <i class="fa fa-search mr-2"></i> 开始探索
+                </button>
+                <button id="show-rules" class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
+                    <i class="fa fa-info-circle mr-2"></i> 了解更多
+                </button>
+            </div>
+        </div>
+        
+        <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-24 h-12 bg-light rounded-t-full"></div>
+    </section>
+
+    <!-- 玩法规则模态框 -->
+    <div id="rules-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="relative">
+                <!-- 关闭按钮 -->
+                <button id="close-rules" class="absolute top-4 right-4 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full z-10 transition-colors">
+                    <i class="fa fa-times"></i>
+                </button>
+                
+                <div class="p-6 md:p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-center">洛克王国小吉-玩法规则</h3>
+                    <p class="text-slate-700 mb-6">关注洛克王国小吉，获得更多更有趣的玩法！</p>
+                    <!-- 无培花瓶魔力值玩法 -->
+                    <div class="rule-section">
+                        <h4 class="text-xl font-bold mb-3 text-primary">无培花瓶魔力值玩法</h4>
+                        
+                        <div class="mb-4">
+                            <p class="font-medium">战区：201区</p>
+                        </div>
+                        
+                        <div>
+                            <p class="font-medium mb-2">玩法说明：</p>
+                            <ul class="list-disc pl-6 space-y-2 text-slate-700">
+                                <li>点击【魔力值宠物】，即为可玩宠物。</li>
+                                <li>⭐对应其魔力值，总魔力值不能超过16</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- 无培花瓶PK玩法 -->
+                    <div class="rule-section">
+                        <h4 class="text-xl font-bold mb-3 text-primary">无培花瓶PK玩法</h4>
+                        
+                        <div class="mb-4">
+                            <p class="font-medium">战区：233区</p>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <p class="font-medium mb-2">玩法说明：</p>
+                            <p class="text-slate-700 mb-3">
+                                *无培的定义就是“没有培育”，包括亲密度，果子，装备。无培的初心就是门槛低，上手难度简单，可以给刚回归玩家和常驻玩家提供一个比较不错的玩法。更多的限制也是为了让一些比较弱的宠物也有上场的机会，百花齐放（不至于一两套国家队阵容一棒子打死）。
+                            </p>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <p class="font-medium mb-2">PK规则：</p>
+                            <p class="text-slate-700 mb-3">限制序列号1100，禁用绝大部分超进化（新玩家限制1100，不要带高序列号）</p>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <p class="font-medium mb-2">技能方面：</p>
+                            <ol class="list-decimal pl-6 space-y-3 text-slate-700">
+                                <li>
+                                    烈焰云，恢复，护盾（包括护盾术）限制数量为1（类似于6只宠物只能带一个烈焰云），
+                                    恢复技能包括：回天，光合作用，休息回复等（类似祈福，幽灵镜不算)；<br>
+                                    禁用例如：麻醉粉、电磁之波等稳定麻醉。概率麻醉禁用包括：电磁巨炮、电磁脉冲、醉生梦死；
+                                </li>
+                                <li>
+                                    禁止恶意赌冰冻，例：上场直接九速冰晶结界起手、抵抗还打冰冻打击之类，冰冻严禁提
+                                    强化，严禁换宠物，可以开冰天（为了玩法多样性，不然直接冰冻无脑强化去推队也没
+                                    什么意思);
+                                </li>
+                                <li>
+                                    任何形式的“催眠”，“迷惑”，都禁用（包括生命火焰以及迪莫的迷惑射线）;
+                                </li>
+                                <li>
+                                    神秘力量、守护之力、沙石爆、大地宽恕、光刺炮、天崩地裂、口吐冰莲、金属噪音、极
+                                    度深寒、升龙咆哮、冰咆哮、宁神、粒子重击、怪神之力（包括超进化以后的技能，例：
+                                    慧根遁击等）禁用；
+                                </li>
+                                <li>
+                                    个别宠物/技能限制：所有恶魔系宠物恶魔之盾和巨魔之眼二选一、鸭吉吉（包括圣诞）
+                                    风之保护（提速）和乾坤一掷二选一、蓝衣夜灵禁用龙之舞、冰天雪地和传说力量二选
+                                    一（尤其是冰晶古齿虎），怒火兽禁用休息回复，迪莫禁用粒子重击，BUG培育禁用：
+                                    非正常手段遗传的技能（常见的死亡来临格兰、金刚飞比暴角龙等）；
+                                </li>
+                                <li>
+                                    包括没有提到的后面改动的技能（类似骨龙的龙威等）
+                                </li>
+                            </ol>
+                        </div>
+                        
+                        <div>
+                            <p class="font-medium mb-2">宠物方面：</p>
+                            <ol class="list-decimal pl-6 space-y-3 text-slate-700">
+                                <li>
+                                    超进化开放：巨牙猛犸象、奇丽果、空灵斗士、绅士鸡、冰灵乐熊、梦幻卡洛儿、神圣
+                                    人鱼、海豚双形态，（其他全ba）禁用超进化以后的技能（包括空灵斗士的暴力汲取），
+                                </li>
+                                <li>
+                                    多元大概禁用：猫老大、多灵主、艾不败、食梦者、炫酷萌少、超能阿布、赤炎飞龙、
+                                    赤炎耀甲、鹦鹉哨、幽灵冰姬、先锋君主、神圣青龙、幻影、图灵、斑点牛牛（种族值过高，
+                                    有些宠物后期改动等);
+                                </li>
+                                <li>
+                                    精灵王开放方面：冰、萌、草（双)、翼、幽，五个系别精灵王二阶，其他全部禁用；
+                                </li>
+                                <li>
+                                    红萝卜免禁用萝卜打击，香气弥漫，刀叶狂击，白萝卜兔禁用9速藤木鞭击，萝卜守护；
+                                </li>
+                                <li>
+                                    1100序列号一—2000序列号以内种族值不超过550酌情开放，单项种族值过高不开（类似
+                                    于魔攻宠物魔攻种族值150，物攻种族值40）2000序列号以上全部禁用哪怕300种族值也
+                                    禁用，新手玩家限制1100，不要自己开发）
+                                </li>
+                            </ol>
+                            <p class="text-slate-700 mt-3 italic">
+                                *如果有忘记或新增会在评论区补充说明，规则限制只是为了更好的游戏体验，感谢理解。
+                                *欢迎加入小吉QQ群：766926531（交流学习，更有超多绝版宠物蛋等你来换！）
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <main class="container mx-auto px-4 py-12 flex-grow">
+        <!-- 宠物图鉴内容区域 -->
+        <section id="pet-content">
+            <!-- 战队组建区域 -->
+            <section class="mb-16 bg-white rounded-2xl shadow-lg p-6 md:p-8 transition-all duration-300 hover:shadow-xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold flex items-center">
+                        <i class="fa fa-shield text-primary mr-3"></i> 我的战队
+                        <span class="ml-2 text-sm font-normal text-slate-500">(选择6只宠物组成你的战队)</span>
+                    </h3>
+                    
+                    <div class="bg-primary/10 text-primary px-4 py-2 rounded-lg flex items-center">
+                        <i class="fa fa-magic mr-2"></i>
+                        <span class="font-medium">总魔力值: </span>
+                        <span id="total-power" class="ml-1 font-bold">0.0</span>
+                    </div>
+                </div>
+                
+                <div id="team-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+                    <div class="team-slot aspect-square bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:border-primary/50 hover:bg-slate-50 transition-all duration-300">
+                        <i class="fa fa-plus text-2xl mb-2"></i>
+                        <span class="text-xs">添加宠物</span>
+                    </div>
+                    <div class="team-slot aspect-square bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:border-primary/50 hover:bg-slate-50 transition-all duration-300">
+                        <i class="fa fa-plus text-2xl mb-2"></i>
+                        <span class="text-xs">添加宠物</span>
+                    </div>
+                    <div class="team-slot aspect-square bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:border-primary/50 hover:bg-slate-50 transition-all duration-300">
+                        <i class="fa fa-plus text-2xl mb-2"></i>
+                        <span class="text-xs">添加宠物</span>
+                    </div>
+                    <div class="team-slot aspect-square bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:border-primary/50 hover:bg-slate-50 transition-all duration-300">
+                        <i class="fa fa-plus text-2xl mb-2"></i>
+                        <span class="text-xs">添加宠物</span>
+                    </div>
+                    <div class="team-slot aspect-square bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:border-primary/50 hover:bg-slate-50 transition-all duration-300">
+                        <i class="fa fa-plus text-2xl mb-2"></i>
+                        <span class="text-xs">添加宠物</span>
+                    </div>
+                    <div class="team-slot aspect-square bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:border-primary/50 hover:bg-slate-50 transition-all duration-300">
+                        <i class="fa fa-plus text-2xl mb-2"></i>
+                        <span class="text-xs">添加宠物</span>
+                    </div>
+                </div>
+                
+                <div class="mt-6 text-right">
+                    <button id="clear-team" class="text-slate-500 hover:text-red-500 font-medium transition-colors flex items-center ml-auto">
+                        <i class="fa fa-trash mr-2"></i> 清空战队
+                    </button>
+                </div>
+            </section>
+
+            <!-- 筛选和搜索区域 -->
+            <section class="mb-10">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <h3 class="text-2xl font-bold">宠物图鉴</h3>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                id="search-pets" 
+                                placeholder="搜索宠物..." 
+                                class="pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all w-full sm:w-64"
+                            >
+                            <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                        </div>
+                        
+                        <button id="filter-power-pets" class="border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all bg-white hover:bg-slate-50">
+                            <i class="fa fa-star text-amber-500 mr-1"></i> 魔力值宠物
+                        </button>
+                        
+                        <select id="sort-pets" class="border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all bg-white">
+                            <option value="id-asc">按编号: 从小到大</option>
+                            <option value="id-desc">按编号: 从大到小</option>
+                            <option value="race-asc">按种族值: 从低到高</option>
+                            <option value="race-desc">按种族值: 从高到低</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 系别筛选标签 -->
+                <div class="flex flex-wrap gap-2 mb-8">
+                    <button class="type-filter active px-4 py-2 rounded-full bg-primary text-white text-sm font-medium transition-all" data-type="all">
+                        全部
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-fire/10 text-fire text-sm font-medium transition-all hover:bg-fire/20" data-type="fire">
+                        <i class="fa fa-fire mr-1"></i> 火系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-water/10 text-water text-sm font-medium transition-all hover:bg-water/20" data-type="water">
+                        <i class="fa fa-tint mr-1"></i> 水系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-grass/10 text-grass text-sm font-medium transition-all hover:bg-grass/20" data-type="grass">
+                        <i class="fa fa-leaf mr-1"></i> 草系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-electric/10 text-electric text-sm font-medium transition-all hover:bg-electric/20" data-type="electric">
+                        <i class="fa fa-bolt mr-1"></i> 电系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-ice/10 text-ice text-sm font-medium transition-all hover:bg-ice/20" data-type="ice">
+                        <i class="fa fa-snowflake-o mr-1"></i> 冰系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-fighting/10 text-fighting text-sm font-medium transition-all hover:bg-fighting/20" data-type="fighting">
+                        <i class="fa fa-fighter-jet mr-1"></i> 武系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-poison/10 text-poison text-sm font-medium transition-all hover:bg-poison/20" data-type="poison">
+                        <i class="fa fa-flask mr-1"></i> 毒系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-ground/10 text-ground text-sm font-medium transition-all hover:bg-ground/20" data-type="ground">
+                        <i class="fa fa-globe mr-1"></i> 土系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-flying/10 text-flying text-sm font-medium transition-all hover:bg-flying/20" data-type="flying">
+                        <i class="fa fa-paper-plane mr-1"></i> 翼系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-psychic/10 text-psychic text-sm font-medium transition-all hover:bg-psychic/20" data-type="psychic">
+                        <i class="fa fa-heart-o mr-1"></i> 萌系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-bug/10 text-bug text-sm font-medium transition-all hover:bg-bug/20" data-type="bug">
+                        <i class="fa fa-bug mr-1"></i> 虫系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-rock/10 text-rock text-sm font-medium transition-all hover:bg-rock/20" data-type="rock">
+                        <i class="fa fa-cube mr-1"></i> 石系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-ghost/10 text-ghost text-sm font-medium transition-all hover:bg-ghost/20" data-type="ghost">
+                        <i class="fa fa-ghost mr-1"></i> 幽灵系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-dragon/10 text-dragon text-sm font-medium transition-all hover:bg-dragon/20" data-type="dragon">
+                        <i class="fa fa-diamond mr-1"></i> 龙系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-dark/10 text-dark text-sm font-medium transition-all hover:bg-dark/20" data-type="dark">
+                        <i class="fa fa-moon-o mr-1"></i> 恶魔系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-steel/10 text-steel text-sm font-medium transition-all hover:bg-steel/20" data-type="steel">
+                        <i class="fa fa-shield mr-1"></i> 机械系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-fairy/10 text-fairy text-sm font-medium transition-all hover:bg-fairy/20" data-type="fairy">
+                        <i class="fa fa-star mr-1"></i> 光系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-normal/10 text-normal text-sm font-medium transition-all hover:bg-normal/20" data-type="normal">
+                        <i class="fa fa-check-circle mr-1"></i> 普通系
+                    </button>
+                    <button class="type-filter px-4 py-2 rounded-full bg-godgrass/10 text-godgrass text-sm font-medium transition-all hover:bg-godgrass/20" data-type="godgrass">
+                        <i class="fa fa-leaf mr-1"></i> 神草系
+                    </button>
+                </div>
+            </section>
+
+            <!-- 宠物展示区域 -->
+            <section id="pets-display">
+                <div class="text-center py-12" id="loading-indicator">
+                    <i class="fa fa-circle-o-notch fa-spin text-3xl text-primary mb-4"></i>
+                    <p class="text-slate-500">正在加载宠物数据...</p>
+                </div>
+            </section>
+        </section>
+
+        <!-- 游戏资讯内容区域 (初始隐藏) -->
+        <section id="news-content" class="section-hidden">
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold">游戏资讯</h3>
+                    <button id="back-to-pets" class="text-primary hover:text-primary/80 font-medium flex items-center transition-colors">
+                        <i class="fa fa-arrow-left mr-1"></i> 返回宠物图鉴
+                    </button>
+                </div>
+                
+                <!-- 游戏资讯卡片 -->
+                <div class="news-card">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src="https://mmbiz.qpic.cn/mmbiz_jpg/wzAdDcXTTKS4Xuxs6c7WQ/0?wx_fmt=jpeg" 
+                             alt="游戏资讯封面" 
+                             class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+                            <div class="p-6 text-white">
+                                <h4 class="text-xl font-bold mb-2">洛克王国最新活动公告</h4>
+                                <p class="text-white/80">最新宠物更新与活动详情</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <p class="text-slate-700 mb-6">
+                            点击下方按钮查看洛克王国最新活动资讯，了解新宠物上线信息、限时活动和游戏攻略。
+                            内容来源于微信公众号"洛克王国"官方发布。
+                        </p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <a href="https://mp.weixin.qq.com/s/wzAdDc_X_TKS4Xuxs6c7WQ" 
+                               target="_blank" 
+                               class="btn-primary flex items-center justify-center flex-1">
+                                <i class="fa fa-external-link mr-2"></i> 在新窗口打开资讯
+                            </a>
+                            
+                            <button id="copy-news-link" 
+                                    class="border border-slate-300 hover:border-primary hover:text-primary rounded-lg px-4 py-2 transition-all flex items-center justify-center">
+                                <i class="fa fa-copy mr-2"></i> 复制链接
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 其他内容区域 -->
+        <section id="skills-content" class="section-hidden">
+            <div class="bg-white rounded-2xl shadow-lg p-6 text-center py-20">
+                <h3 class="text-2xl font-bold mb-4">宠物技能</h3>
+                <p class="text-slate-500">宠物技能内容正在整理中...</p>
+            </div>
+        </section>
+        
+        <!-- 战斗攻略内容区域 -->
+        <section id="strategy-content" class="section-hidden">
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold">战斗攻略</h3>
+                    <button id="back-from-strategy" class="text-primary hover:text-primary/80 font-medium flex items-center transition-colors">
+                        <i class="fa fa-arrow-left mr-1"></i> 返回宠物图鉴
+                    </button>
+                </div>
+                
+                <!-- 攻略卡片区域 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    <!-- 属性克制卡片 -->
+                    <a href="https://17roco.gamebbs.qq.com/forum.php?mod=viewthread&tid=158387&extra=page%3D1%26filter%3Dtypeid%26typeid%3D3%26typeid%3D3" target="_blank" class="攻略-card group">
+                        <div class="p-6">
+                            <div class="攻略-icon-container bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                                <i class="fa fa-balance-scale text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2">属性克制</h3>
+                            <p class="text-slate-500 text-sm">了解各属性之间的克制关系，合理搭配宠物阵容，发挥最大战斗效果。</p>
+                        </div>
+                        <div class="px-6 py-3 bg-slate-50 flex justify-between items-center">
+                            <span class="text-sm text-primary">查看详情</span>
+                            <i class="fa fa-arrow-right text-primary group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </a>
+                    
+                    <!-- 性格加成卡片 -->
+                    <a href="https://17roco.gamebbs.qq.com/forum.php?mod=viewthread&tid=159141&extra=page%3D1%26filter%3Dtypeid%26typeid%3D3%26typeid%3D3" target="_blank" class="攻略-card group">
+                        <div class="p-6">
+                            <div class="攻略-icon-container bg-psychic/10 text-psychic group-hover:bg-psychic group-hover:text-white transition-colors">
+                                <i class="fa fa-star text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2">性格加成</h3>
+                            <p class="text-slate-500 text-sm">不同性格对宠物属性有不同影响，选择合适的性格能让宠物发挥最佳潜力。</p>
+                        </div>
+                        <div class="px-6 py-3 bg-slate-50 flex justify-between items-center">
+                            <span class="text-sm text-primary">查看详情</span>
+                            <i class="fa fa-arrow-right text-primary group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </a>
+                    
+                    <!-- 技能遗传卡片 -->
+                    <a href="https://17roco.gamebbs.qq.com/forum.php?mod=viewthread&tid=156449&extra=page%3D1%26filter%3Dtypeid%26typeid%3D3%26typeid%3D3" target="_blank" class="攻略-card group">
+                        <div class="p-6">
+                            <div class="攻略-icon-container bg-grass/10 text-grass group-hover:bg-grass group-hover:text-white transition-colors">
+                                <i class="fa fa-code-fork text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2">技能遗传</h3>
+                            <p class="text-slate-500 text-sm">掌握宠物技能遗传规律，培育出拥有特殊技能组合的强力宠物。</p>
+                        </div>
+                        <div class="px-6 py-3 bg-slate-50 flex justify-between items-center">
+                            <span class="text-sm text-primary">查看详情</span>
+                            <i class="fa fa-arrow-right text-primary group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </a>
+                    
+                    <!-- 宠物捕捉卡片 -->
+                    <a href="https://17roco.gamebbs.qq.com/forum.php?mod=viewthread&tid=157192&extra=page%3D1%26filter%3Dtypeid%26typeid%3D3%26typeid%3D3" target="_blank" class="攻略-card group">
+                        <div class="p-6">
+                            <div class="攻略-icon-container bg-electric/10 text-electric group-hover:bg-electric group-hover:text-white transition-colors">
+                                <i class="fa fa-paw text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2">宠物捕捉</h3>
+                            <p class="text-slate-500 text-sm">了解各种宠物的捕捉地点和技巧，收集完整的宠物图鉴。</p>
+                        </div>
+                        <div class="px-6 py-3 bg-slate-50 flex justify-between items-center">
+                            <span class="text-sm text-primary">查看详情</span>
+                            <i class="fa fa-arrow-right text-primary group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- 说明文字 -->
+                <div class="bg-white/50 backdrop-blur-sm rounded-lg p-4 text-center text-slate-500 text-sm border border-slate-200">
+                    以上内容均来自洛克王国官方论坛，仅供学习交流。
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚版权信息 -->
+    <footer class="bg-dark text-white py-8 mt-16">
+        <div class="container mx-auto px-4">
+            <div class="text-center">
+                <p class="text-slate-400">宠物资料收集于网络，所有宠物资料版权归洛克王国所有。</p>
+                <p class="text-slate-500 text-sm mt-2">© 2025 洛克王国宠物图鉴 - 仅供学习交流使用</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 宠物详情模态框 -->
+    <div id="pet-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="relative">
+                <button id="close-modal" class="absolute top-4 right-4 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full z-10 transition-colors">
+                    <i class="fa fa-times"></i>
+                </button>
+                
+                <div class="h-64 md:h-80 bg-gradient-to-r from-slate-100 to-slate-200 flex items-center justify-center">
+                    <img id="modal-pet-image" src="" alt="宠物图片" class="h-full object-contain p-8">
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-3">
+                                <h3 id="modal-pet-name" class="text-2xl md:text-3xl font-bold"></h3>
+                                <span id="modal-pet-number" class="text-slate-500"></span>
+                            </div>
+                            
+                            <div id="modal-pet-types" class="flex gap-2 mb-4"></div>
+                            
+                            <p id="modal-pet-description" class="text-slate-600 mb-6"></p>
+                            
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <div class="bg-slate-50 p-3 rounded-lg">
+                                    <h4 class="text-sm text-slate-500 mb-1">组别</h4>
+                                    <p id="modal-pet-group" class="font-medium"></p>
+                                </div>
+                                <div class="bg-slate-50 p-3 rounded-lg">
+                                    <h4 class="text-sm text-slate-500 mb-1">魔力值</h4>
+                                    <p id="modal-pet-power" class="font-medium text-amber-500"></p>
+                                </div>
+                            </div>
+                            
+                            <h4 class="text-lg font-bold mb-3">种族值详情</h4>
+                            <div id="modal-pet-stats" class="space-y-3"></div>
+                        </div>
+                        
+                        <div class="w-full md:w-48 flex flex-col gap-3">
+                            <button id="modal-add-to-team" class="btn-primary w-full">
+                                <i class="fa fa-plus-circle mr-1"></i> 加入战队
+                            </button>
+                            <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-all duration-300">
+                                <i class="fa fa-heart-o mr-1"></i> 收藏宠物
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-dark text-white px-4 py-2 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        操作成功
+    </div>
+
+    <script>
+        // 存储宠物数据
+        let petsData = [];
+        let originalPetsData = [];
+        const selectedPets = new Map();
+        let powerFilterActive = false;
+        
+        // 系别名称映射
+        const typeNames = {
+            fire: '火系',
+            water: '水系',
+            grass: '草系',
+            electric: '电系',
+            ice: '冰系',
+            fighting: '武系',
+            poison: '毒系',
+            ground: '土系',
+            flying: '翼系',
+            psychic: '萌系',
+            bug: '虫系',
+            rock: '石系',
+            ghost: '幽灵系',
+            dragon: '龙系',
+            dark: '恶魔系',
+            steel: '机械系',
+            fairy: '光系',
+            normal: '普通系',
+            godgrass: '神草系'
+        };
+        
+        // 系别图标映射
+        const typeIcons = {
+            fire: 'fa-fire',
+            water: 'fa-tint',
+            grass: 'fa-leaf',
+            electric: 'fa-bolt',
+            ice: 'fa-snowflake-o',
+            fighting: 'fa-fighter-jet',
+            poison: 'fa-flask',
+            ground: 'fa-globe',
+            flying: 'fa-paper-plane',
+            psychic: 'fa-heart-o',
+            bug: 'fa-bug',
+            rock: 'fa-cube',
+            ghost: 'fa-ghost',
+            dragon: 'fa-diamond',
+            dark: 'fa-moon-o',
+            steel: 'fa-shield',
+            fairy: 'fa-star',
+            normal: 'fa-check-circle',
+            godgrass: 'fa-leaf'
+        };
+
+        // 页面加载时从CSV加载宠物数据
+        document.addEventListener('DOMContentLoaded', function() {
+            Papa.parse('pets.csv', {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    petsData = results.data.map(pet => {
+                        const typeMap = {
+                            '火': 'fire',
+                            '水': 'water',
+                            '草': 'grass',
+                            '电': 'electric',
+                            '冰': 'ice',
+                            '武': 'fighting',
+                            '毒': 'poison',
+                            '土': 'ground',
+                            '翼': 'flying',
+                            '萌': 'psychic',
+                            '虫': 'bug',
+                            '石': 'rock',
+                            '幽灵': 'ghost',
+                            '龙': 'dragon',
+                            '恶魔': 'dark',
+                            '机械': 'steel',
+                            '光': 'fairy',
+                            '普通': 'normal',
+                            '神草': 'godgrass'
+                        };
+                        
+                        const primaryType = typeMap[pet.主] || 'unknown';
+                        const secondaryType = pet.副 ? (typeMap[pet.副] || null) : null;
+                        
+                        const types = [primaryType];
+                        if (secondaryType && secondaryType !== primaryType && secondaryType !== 'unknown') {
+                            types.push(secondaryType);
+                        }
+                        
+                        return {
+                            id: parseInt(pet.编号),
+                            name: pet.名称,
+                            types: types,
+                            power: pet.魔力值,
+                            number: pet.编号,
+                            raceValue: pet.总和,
+                            description: pet.简介,
+                            group: pet.组别 || '未知',
+                            stats: {
+                                hp: pet.精力 || 0,
+                                attack: pet.物攻 || 0,
+                                defense: pet.防御 || 0,
+                                speed: pet.速度 || 0,
+                                spAttack: pet.魔攻 || 0,
+                                spDefense: pet.魔抗 || 0
+                            },
+                            image: `pet-images/${pet.编号}.png`,
+                            category: primaryType
+                        };
+                    });
+                    
+                    originalPetsData = [...petsData];
+                    petsData.sort((a, b) => a.id - b.id);
+                    
+                    document.getElementById('loading-indicator').style.display = 'none';
+                    renderPetsByCategory();
+                    setupEventListeners();
+                },
+                error: function(error) {
+                    console.error('加载CSV失败:', error);
+                    document.getElementById('loading-indicator').innerHTML = `
+                        <i class="fa fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+                        <p class="text-slate-500">加载宠物数据失败，请检查文件路径</p>
+                    `;
+                }
+            });
+        });
+
+        // 切换内容区域显示
+        function showContent(target) {
+            document.getElementById('pet-content').classList.add('section-hidden');
+            document.getElementById('news-content').classList.add('section-hidden');
+            document.getElementById('skills-content').classList.add('section-hidden');
+            document.getElementById('strategy-content').classList.add('section-hidden');
+            document.getElementById('main-banner').classList.add('section-hidden');
+            
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('text-primary', 'border-b-2', 'border-primary');
+                link.classList.add('text-slate-600');
+            });
+            
+            switch(target) {
+                case 'pet-t图鉴':
+                    document.getElementById('pet-content').classList.remove('section-hidden');
+                    document.getElementById('main-banner').classList.remove('section-hidden');
+                    document.querySelector(`.nav-link[data-target="pet-t图鉴"]`).classList.remove('text-slate-600');
+                    document.querySelector(`.nav-link[data-target="pet-t图鉴"]`).classList.add('text-primary', 'border-b-2', 'border-primary');
+                    break;
+                case '游戏资讯':
+                    document.getElementById('news-content').classList.remove('section-hidden');
+                    document.querySelector(`.nav-link[data-target="游戏资讯"]`).classList.remove('text-slate-600');
+                    document.querySelector(`.nav-link[data-target="游戏资讯"]`).classList.add('text-primary', 'border-b-2', 'border-primary');
+                    break;
+                case '宠物技能':
+                    document.getElementById('skills-content').classList.remove('section-hidden');
+                    document.querySelector(`.nav-link[data-target="宠物技能"]`).classList.remove('text-slate-600');
+                    document.querySelector(`.nav-link[data-target="宠物技能"]`).classList.add('text-primary', 'border-b-2', 'border-primary');
+                    break;
+                case '战斗攻略':
+                    document.getElementById('strategy-content').classList.remove('section-hidden');
+                    document.querySelector(`.nav-link[data-target="战斗攻略"]`).classList.remove('text-slate-600');
+                    document.querySelector(`.nav-link[data-target="战斗攻略"]`).classList.add('text-primary', 'border-b-2', 'border-primary');
+                    break;
+            }
+        }
+
+        // 显示提示消息
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2000);
+        }
+
+        // 渲染宠物列表
+        function renderPetsByCategory() {
+            const petsDisplay = document.getElementById('pets-display');
+            petsDisplay.innerHTML = '';
+            
+            const allPetsContainer = document.createElement('div');
+            allPetsContainer.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6';
+            petsDisplay.appendChild(allPetsContainer);
+            
+            petsData.forEach(pet => {
+                allPetsContainer.appendChild(createPetCard(pet));
+            });
+        }
+
+        // 创建宠物卡片
+        function createPetCard(pet) {
+            const card = document.createElement('div');
+            card.className = 'pet-card bg-white rounded-xl shadow-md overflow-hidden pet-card-hover cursor-pointer flex flex-col h-full';
+            card.setAttribute('data-id', pet.id);
+            card.setAttribute('data-types', JSON.stringify(pet.types));
+            card.setAttribute('data-name', pet.name);
+            card.setAttribute('data-power', pet.power);
+            
+            let typeBadges = '';
+            pet.types.forEach(type => {
+                typeBadges += `
+                    <div class="bg-${type} type-badge">
+                        <i class="fa ${typeIcons[type]} mr-1"></i> ${typeNames[type] || type}
+                    </div>
+                `;
+            });
+            
+            let gradientBg = `from-${pet.types[0]}/20`;
+            if (pet.types.length > 1) {
+                gradientBg += ` via-${pet.types[1]}/10`;
+            }
+            gradientBg += ' to-transparent';
+            
+            card.innerHTML = `
+                <div class="pet-image-container bg-gradient-to-b ${gradientBg}">
+                    <img src="${pet.image}" alt="${pet.name}" class="pet-image" onerror="this.src='https://via.placeholder.com/150?text=暂无图片'">
+                    <div class="type-badges-container">
+                        ${typeBadges}
+                    </div>
+                    <button class="absolute top-2 left-2 bg-white/80 backdrop-blur-sm p-1.5 rounded-full text-slate-600 hover:text-primary transition-colors">
+                        <i class="fa fa-heart-o"></i>
+                    </button>
+                </div>
+                
+                <div class="p-4 pet-info-container">
+                    <div class="flex justify-between items-start mb-2">
+                        <h5 class="font-bold text-lg">${pet.name}</h5>
+                        <div class="flex items-center text-amber-500">
+                            <i class="fa fa-star"></i>
+                            <span class="ml-1 text-sm font-medium power-value">${pet.power}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between text-sm text-slate-500 mb-3">
+                        <span>编号: ${pet.number}</span>
+                        <span>种族值: ${pet.raceValue}</span>
+                    </div>
+                    
+                    <p class="text-sm text-slate-600 mb-4 pet-description line-clamp-2">${pet.description}</p>
+                    
+                    <button class="add-to-team w-full btn-primary py-2 text-sm mt-auto" data-pet-id="${pet.id}">
+                        <i class="fa fa-plus-circle mr-1"></i> 加入战队
+                    </button>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // 显示宠物详情
+        function showPetDetails(petId) {
+            const pet = petsData.find(p => p.id === parseInt(petId));
+            if (!pet) return;
+            
+            document.getElementById('modal-pet-name').textContent = pet.name;
+            document.getElementById('modal-pet-number').textContent = `#${pet.number}`;
+            document.getElementById('modal-pet-image').src = pet.image;
+            document.getElementById('modal-pet-image').onerror = function() {
+                this.src = 'https://via.placeholder.com/300?text=暂无图片';
+            };
+            document.getElementById('modal-pet-description').textContent = pet.description;
+            document.getElementById('modal-pet-power').textContent = pet.power;
+            document.getElementById('modal-pet-group').textContent = pet.group;
+            
+            const addButton = document.getElementById('modal-add-to-team');
+            addButton.setAttribute('data-pet-id', pet.id);
+            if (selectedPets.has(petId.toString())) {
+                addButton.className = 'btn-disabled w-full';
+                addButton.innerHTML = '<i class="fa fa-check mr-1"></i> 已加入';
+            } else {
+                addButton.className = 'btn-primary w-full';
+                addButton.innerHTML = '<i class="fa fa-plus-circle mr-1"></i> 加入战队';
+            }
+            
+            const typesContainer = document.getElementById('modal-pet-types');
+            typesContainer.innerHTML = '';
+            pet.types.forEach(type => {
+                const badge = document.createElement('div');
+                badge.className = `bg-${type} type-badge`;
+                badge.innerHTML = `<i class="fa ${typeIcons[type]} mr-1"></i> ${typeNames[type] || type}`;
+                typesContainer.appendChild(badge);
+            });
+            
+            const statsContainer = document.getElementById('modal-pet-stats');
+            statsContainer.innerHTML = '';
+            
+            const statsMap = [
+                { name: '精力', value: pet.stats.hp, color: 'bg-red-500' },
+                { name: '物攻', value: pet.stats.attack, color: 'bg-orange-500' },
+                { name: '防御', value: pet.stats.defense, color: 'bg-yellow-500' },
+                { name: '速度', value: pet.stats.speed, color: 'bg-green-500' },
+                { name: '魔攻', value: pet.stats.spAttack, color: 'bg-blue-500' },
+                { name: '魔抗', value: pet.stats.spDefense, color: 'bg-purple-500' }
+            ];
+            
+            statsMap.forEach(stat => {
+                const statEl = document.createElement('div');
+                const percentage = Math.min(100, Math.max(0, (stat.value / 200) * 100));
+                statEl.innerHTML = `
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-medium">${stat.name}</span>
+                        <span class="text-sm text-slate-500">${stat.value}</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-progress ${stat.color}" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                statsContainer.appendChild(statEl);
+            });
+            
+            document.getElementById('pet-modal').style.display = 'flex';
+        }
+
+        // 更新总魔力值
+        function updateTotalPower() {
+            let total = 0;
+            selectedPets.forEach(pet => {
+                total += parseFloat(pet.power);
+            });
+            document.getElementById('total-power').textContent = total.toFixed(1);
+        }
+
+        // 排序宠物
+        function sortPets(sortType) {
+            switch(sortType) {
+                case 'id-asc':
+                    petsData.sort((a, b) => a.id - b.id);
+                    break;
+                case 'id-desc':
+                    petsData.sort((a, b) => b.id - a.id);
+                    break;
+                case 'race-asc':
+                    petsData.sort((a, b) => parseInt(a.raceValue) - parseInt(b.raceValue));
+                    break;
+                case 'race-desc':
+                    petsData.sort((a, b) => parseInt(b.raceValue) - parseInt(a.raceValue));
+                    break;
+            }
+            renderPetsByCategory();
+        }
+
+        // 搜索宠物
+        function searchPets(query) {
+            if (powerFilterActive) {
+                petsData = [...originalPetsData.filter(pet => parseFloat(pet.power) > 0)];
+            } else {
+                petsData = [...originalPetsData];
+            }
+            
+            const sortType = document.getElementById('sort-pets').value;
+            sortPets(sortType);
+            
+            if (!query) {
+                document.querySelectorAll('.pet-card').forEach(card => {
+                    card.style.display = 'block';
+                });
+                return;
+            }
+            
+            query = query.toLowerCase();
+            document.querySelectorAll('.pet-card').forEach(card => {
+                const name = card.getAttribute('data-name').toLowerCase();
+                const types = JSON.parse(card.getAttribute('data-types'));
+                const typeNamesStr = types.map(type => typeNames[type] || type).join('').toLowerCase();
+                
+                const matches = name.includes(query) || typeNamesStr.includes(query);
+                card.style.display = matches ? 'block' : 'none';
+            });
+        }
+
+        // 魔力值筛选
+        function filterPowerPets() {
+            powerFilterActive = !powerFilterActive;
+            const filterButton = document.getElementById('filter-power-pets');
+            
+            if (powerFilterActive) {
+                petsData = originalPetsData.filter(pet => {
+                    const power = parseFloat(pet.power);
+                    return !isNaN(power) && power > 0;
+                });
+                filterButton.className = 'border border-primary bg-primary/10 text-primary rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all hover:bg-primary/20';
+            } else {
+                petsData = [...originalPetsData];
+                filterButton.className = 'border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all bg-white hover:bg-slate-50';
+            }
+            
+            const sortType = document.getElementById('sort-pets').value;
+            sortPets(sortType);
+            
+            const searchQuery = document.getElementById('search-pets').value.trim();
+            if (searchQuery) {
+                searchPets(searchQuery);
+            }
+        }
+
+        // 设置事件监听
+        function setupEventListeners() {
+            // 导航链接点击
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = this.getAttribute('data-target');
+                    showContent(target);
+                });
+            });
+            
+            // 返回宠物图鉴按钮
+            document.getElementById('back-to-pets').addEventListener('click', function() {
+                showContent('pet-t图鉴');
+            });
+            
+            document.getElementById('back-from-strategy').addEventListener('click', function() {
+                showContent('pet-t图鉴');
+            });
+            
+            // 复制资讯链接
+            document.getElementById('copy-news-link').addEventListener('click', function() {
+                const link = 'https://mp.weixin.qq.com/s/wzAdDc_X_TKS4Xuxs6c7WQ';
+                navigator.clipboard.writeText(link).then(() => {
+                    showToast('链接已复制，可粘贴到浏览器打开');
+                }).catch(err => {
+                    console.error('无法复制链接: ', err);
+                    showToast('复制失败，请手动复制链接');
+                });
+            });
+            
+            // 玩法规则相关事件
+            document.getElementById('show-rules').addEventListener('click', function() {
+                document.getElementById('rules-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('close-rules').addEventListener('click', function() {
+                document.getElementById('rules-modal').style.display = 'none';
+            });
+            
+            // 点击规则模态框外部关闭
+            document.getElementById('rules-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.style.display = 'none';
+                }
+            });
+            
+            // 宠物卡片点击
+            document.addEventListener('click', function(e) {
+                const petCard = e.target.closest('.pet-card');
+                if (petCard && !e.target.closest('.add-to-team') && !e.target.closest('.fa-heart-o')) {
+                    const petId = petCard.getAttribute('data-id');
+                    showPetDetails(petId);
+                }
+            });
+            
+            // 关闭宠物详情模态框
+            document.getElementById('close-modal').addEventListener('click', function() {
+                document.getElementById('pet-modal').style.display = 'none';
+            });
+            
+            document.getElementById('pet-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.style.display = 'none';
+                }
+            });
+            
+            // 模态框加入战队
+            document.getElementById('modal-add-to-team').addEventListener('click', function() {
+                const petId = this.getAttribute('data-pet-id');
+                if (selectedPets.has(petId)) return;
+                
+                const pet = originalPetsData.find(p => p.id === parseInt(petId));
+                if (!pet) return;
+                
+                const teamSlots = document.querySelectorAll('#team-container .team-slot');
+                const emptySlots = Array.from(teamSlots).filter(slot => !slot.classList.contains('filled'));
+                
+                if (emptySlots.length === 0) {
+                    alert('战队已满！最多只能添加6只宠物。');
+                    return;
+                }
+                
+                selectedPets.set(petId, {
+                    name: pet.name,
+                    types: pet.types,
+                    power: pet.power,
+                    image: pet.image
+                });
+                updateTotalPower();
+                
+                const firstEmptySlot = emptySlots[0];
+                firstEmptySlot.classList.add('filled');
+                
+                const primaryType = pet.types[0];
+                
+                firstEmptySlot.innerHTML = `
+                    <div class="relative w-full h-full">
+                        <img src="${pet.image}" alt="${pet.name}" class="w-full h-full object-contain p-2" onerror="this.src='https://via.placeholder.com/150?text=暂无图片'">
+                        <div class="absolute top-1 right-1 bg-${primaryType} text-white text-xs px-1.5 py-0.5 rounded-full">
+                            ${pet.power}
+                        </div>
+                        <button class="absolute top-1 left-1 bg-white/80 backdrop-blur-sm p-1 rounded-full text-slate-600 hover:text-red-500 transition-colors remove-pet" data-pet-id="${petId}">
+                            <i class="fa fa-times"></i>
+                        </button>
+                        <div class="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 text-center truncate">
+                            ${pet.name}
+                        </div>
+                    </div>
+                `;
+                
+                this.className = 'btn-disabled w-full';
+                this.innerHTML = '<i class="fa fa-check mr-1"></i> 已加入';
+                
+                const originalButton = document.querySelector(`.add-to-team[data-pet-id="${petId}"]`);
+                if (originalButton) {
+                    originalButton.className = 'add-to-team w-full btn-disabled py-2 text-sm mt-auto';
+                    originalButton.innerHTML = '<i class="fa fa-check mr-1"></i> 已加入';
+                }
+            });
+            
+            // 加入战队按钮点击
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.add-to-team')) {
+                    const button = e.target.closest('.add-to-team');
+                    const petId = button.getAttribute('data-pet-id');
+                    
+                    if (selectedPets.has(petId)) return;
+                    
+                    const pet = originalPetsData.find(p => p.id === parseInt(petId));
+                    if (!pet) return;
+                    
+                    const teamSlots = document.querySelectorAll('#team-container .team-slot');
+                    const emptySlots = Array.from(teamSlots).filter(slot => !slot.classList.contains('filled'));
+                    
+                    if (emptySlots.length === 0) {
+                        alert('战队已满！最多只能添加6只宠物。');
+                        return;
+                    }
+                    
+                    selectedPets.set(petId, {
+                        name: pet.name,
+                        types: pet.types,
+                        power: pet.power,
+                        image: pet.image
+                    });
+                    updateTotalPower();
+                    
+                    const firstEmptySlot = emptySlots[0];
+                    firstEmptySlot.classList.add('filled');
+                    
+                    const primaryType = pet.types[0];
+                    
+                    firstEmptySlot.innerHTML = `
+                        <div class="relative w-full h-full">
+                            <img src="${pet.image}" alt="${pet.name}" class="w-full h-full object-contain p-2" onerror="this.src='https://via.placeholder.com/150?text=暂无图片'">
+                            <div class="absolute top-1 right-1 bg-${primaryType} text-white text-xs px-1.5 py-0.5 rounded-full">
+                                ${pet.power}
+                            </div>
+                            <button class="absolute top-1 left-1 bg-white/80 backdrop-blur-sm p-1 rounded-full text-slate-600 hover:text-red-500 transition-colors remove-pet" data-pet-id="${petId}">
+                                <i class="fa fa-times"></i>
+                            </button>
+                            <div class="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 text-center truncate">
+                                ${pet.name}
+                            </div>
+                        </div>
+                    `;
+                    
+                    button.className = 'add-to-team w-full btn-disabled py-2 text-sm mt-auto';
+                    button.innerHTML = '<i class="fa fa-check mr-1"></i> 已加入';
+                }
+                
+                // 移除宠物
+                if (e.target.closest('.remove-pet')) {
+                    const button = e.target.closest('.remove-pet');
+                    const petId = button.getAttribute('data-pet-id');
+                    const slot = button.closest('.team-slot');
+                    
+                    selectedPets.delete(petId);
+                    updateTotalPower();
+                    
+                    slot.classList.remove('filled');
+                    slot.innerHTML = `
+                        <i class="fa fa-plus text-2xl mb-2"></i>
+                        <span class="text-xs">添加宠物</span>
+                    `;
+                    
+                    const originalButton = document.querySelector(`.add-to-team[data-pet-id="${petId}"]`);
+                    if (originalButton) {
+                        originalButton.className = 'add-to-team w-full btn-primary py-2 text-sm mt-auto';
+                        originalButton.innerHTML = '<i class="fa fa-plus-circle mr-1"></i> 加入战队';
+                    }
+                    
+                    const modalButton = document.getElementById('modal-add-to-team');
+                    if (modalButton.getAttribute('data-pet-id') === petId) {
+                        modalButton.className = 'btn-primary w-full';
+                        modalButton.innerHTML = '<i class="fa fa-plus-circle mr-1"></i> 加入战队';
+                    }
+                }
+            });
+            
+            // 清空战队
+            document.getElementById('clear-team').addEventListener('click', function() {
+                if (confirm('确定要清空战队吗？')) {
+                    selectedPets.clear();
+                    updateTotalPower();
+                    
+                    document.querySelectorAll('#team-container .team-slot').forEach(slot => {
+                        slot.classList.remove('filled');
+                        slot.innerHTML = `
+                            <i class="fa fa-plus text-2xl mb-2"></i>
+                            <span class="text-xs">添加宠物</span>
+                        `;
+                    });
+                    
+                    document.querySelectorAll('.add-to-team').forEach(button => {
+                        button.className = 'add-to-team w-full btn-primary py-2 text-sm mt-auto';
+                        button.innerHTML = '<i class="fa fa-plus-circle mr-1"></i> 加入战队';
+                    });
+                    
+                    const modalButton = document.getElementById('modal-add-to-team');
+                    modalButton.className = 'btn-primary w-full';
+                    modalButton.innerHTML = '<i class="fa fa-plus-circle mr-1"></i> 加入战队';
+                }
+            });
+            
+            // 系别筛选
+            document.querySelectorAll('.type-filter').forEach(button => {
+                button.addEventListener('click', function() {
+                    const selectedType = this.getAttribute('data-type');
+                    
+                    document.querySelectorAll('.type-filter').forEach(btn => {
+                        btn.classList.remove('active', 'bg-primary', 'text-white');
+                        if (btn !== this) {
+                            const type = btn.getAttribute('data-type');
+                            btn.className = `type-filter px-4 py-2 rounded-full bg-${type}/10 text-${type} text-sm font-medium transition-all hover:bg-${type}/20`;
+                        }
+                    });
+                    this.className = 'type-filter active px-4 py-2 rounded-full bg-primary text-white text-sm font-medium transition-all';
+                    
+                    if (selectedType === 'all') {
+                        document.querySelectorAll('.pet-card').forEach(card => {
+                            card.style.display = 'block';
+                        });
+                    } else {
+                        document.querySelectorAll('.pet-card').forEach(card => {
+                            const types = JSON.parse(card.getAttribute('data-types'));
+                            const matches = types.includes(selectedType);
+                            card.style.display = matches ? 'block' : 'none';
+                        });
+                    }
+                });
+            });
+            
+            // 搜索功能
+            document.getElementById('search-pets').addEventListener('input', function() {
+                searchPets(this.value.trim());
+            });
+            
+            // 排序功能
+            document.getElementById('sort-pets').addEventListener('change', function() {
+                sortPets(this.value);
+            });
+            
+            // 魔力值筛选
+            document.getElementById('filter-power-pets').addEventListener('click', filterPowerPets);
+        }
+    </script>
+</body>
+</html>
